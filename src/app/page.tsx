@@ -1,103 +1,208 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useMemo } from "react";
+import { useFavorites } from "@/context/FavoritesContext";
+import LaunchList from "@/components/launch/LaunchList";
+import SearchInput from "@/components/filters/SearchInput";
+import YearFilter from "@/components/filters/YearFilter";
+import EmptyState from "@/components/ui/EmptyState";
+import Loader from "@/components/ui/Loader";
+import Button from "@/components/ui/Button";
+import Toggle from "@/components/ui/Toggle";
+import ErrorState from "@/components/ui/ErrorState";
+
+type ApiLaunch = {
+  id: string;
+  name: string;
+  date_utc: string;
+  rocket: string;
+  success: boolean;
+  links: {
+    patch: {
+      small: string | null;
+      large: string | null;
+    };
+    wikipedia?: string | null;
+    webcast?: string | null;
+  };
+  details?: string | null;
+};
+
+// 📌 Centralized static text
+const staticText = {
+  filters: {
+    searchPlaceholder: "Search launches...",
+    yearLabel: "Year",
+  },
+  pagination: {
+    prev: "Prev",
+    next: "Next",
+    page: (page: number, total: number) => `Page ${page} of ${total || 1}`,
+  },
+  emptyState: {
+    title: "No launches found",
+    description: "Try adjusting your filters or search term.",
+  },
+  errorState: {
+    message: "Failed to load launches. Please try again.",
+  },
+  label: {
+    successLaunch: "Show only successful launches",
+    favoritesOnly: "Favourites only",
+  },
+};
+
+export default function HomePage() {
+  const [launches, setLaunches] = useState<ApiLaunch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // ✅ error state
+  const [selectedLaunchId, setSelectedLaunchId] = useState<string | null>(null);
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [year, setYear] = useState("");
+  const [onlySuccess, setOnlySuccess] = useState(false);
+
+  // ⭐ favorites
+  const { favorites, showOnlyFavorites, toggleShowOnlyFavorites } =
+    useFavorites();
+
+  // 📌 pagination
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
+
+  async function fetchLaunches() {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("https://api.spacexdata.com/v4/launches");
+
+      if (!res.ok) {
+        throw new Error("Network error");
+      }
+
+      const data: ApiLaunch[] = await res.json();
+      setLaunches(data);
+    } catch (err) {
+      setError(staticText.errorState.message); // ✅ set error message
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLaunches();
+  }, []);
+
+  const years = Array.from(
+    new Set(launches.map((l) => l.date_utc.slice(0, 4)))
+  ).sort((a, b) => Number(b) - Number(a));
+
+  const filteredLaunches = useMemo(() => {
+    return launches.filter((launch) => {
+      const matchesSearch = launch.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesYear = year ? launch.date_utc.startsWith(year) : true;
+      const matchesSuccess = onlySuccess ? launch.success : true;
+      const matchesFavorites = showOnlyFavorites
+        ? favorites.includes(launch.id)
+        : true;
+
+      return matchesSearch && matchesYear && matchesSuccess && matchesFavorites;
+    });
+  }, [launches, search, year, onlySuccess, showOnlyFavorites, favorites]);
+
+  // 📌 pagination logic
+  const totalPages = Math.ceil(filteredLaunches.length / pageSize);
+  const paginatedLaunches = filteredLaunches.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div>
+      <div className="mb-6 flex flex-wrap gap-4">
+        <div className="flex-1 min-w-[200px]">
+          <SearchInput value={search} onChange={setSearch} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="flex-1 min-w-[150px]">
+          <YearFilter value={year} onChange={setYear} years={years} />
+        </div>
+        <Toggle
+          checked={onlySuccess}
+          onChange={setOnlySuccess}
+          label={staticText.label.successLaunch}
+        />
+        <Toggle
+          checked={showOnlyFavorites}
+          onChange={toggleShowOnlyFavorites}
+          label={staticText.label.favoritesOnly}
+        />
+      </div>
+
+      {/* Launch list with error + loading handling */}
+      {loading ? (
+        <Loader />
+      ) : error ? (
+        <ErrorState
+          message={error}
+          onRetry={fetchLaunches}
+          icon="⚠️"
+        />
+      ) : paginatedLaunches.length > 0 ? (
+        <>
+          <LaunchList
+            launches={paginatedLaunches.map((l) => ({
+              id: l.id,
+              name: l.name,
+              date: formatDate(l.date_utc),
+              rocket: l.rocket,
+              success: l.success,
+              patch: l.links.patch.small || undefined,
+              details: l.details || "",
+              wikipedia: l.links.wikipedia || "",
+              webcast: l.links.webcast || "",
+            }))}
+            onLaunchClick={setSelectedLaunchId}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+          {/* Pagination controls */}
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <Button
+              variant="secondary"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              {staticText.pagination.prev}
+            </Button>
+
+            <span className="text-gray-700 dark:text-gray-300">
+              {staticText.pagination.page(page, totalPages)}
+            </span>
+
+            <Button
+              variant="secondary"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {staticText.pagination.next}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <EmptyState
+          title={staticText.emptyState.title}
+          description={staticText.emptyState.description}
+        />
+      )}
     </div>
   );
 }
