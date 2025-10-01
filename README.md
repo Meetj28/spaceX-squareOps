@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 SpaceX Mission Explorer
 
-## Getting Started
+A Next.js 15 app that lets you explore **SpaceX launches**, view mission details, and save your favorite missions.  
+Built with **React 19**, **React Query**, **Zustand**, and **TailwindCSS**.
 
-First, run the development server:
+
+## Deployment Link 
+
+https://space-x-square-ops-agon.vercel.app/
+
+---
+
+## 📦 Tech Stack
+
+- **Next.js 15 (App Router)** – framework for SSR/SSG and routing
+- **React 19** – UI library
+- **TypeScript** – type safety
+- **TailwindCSS 4** – styling
+- **React Query (TanStack)** – server state management & caching
+- **Zustand** – local state management (favorites)
+- **Jest + React Testing Library** – testing framework
+
+---
+
+
+## ⚡ Setup instructions
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/your-username/spacex-mission-explorer.git
+cd spacex-mission-explorer
+```
+
+### 2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+### 3. Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 to view it in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Running Tests
 
-## Learn More
+```bash
+npm test
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📂 Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+src/
+  app/                # Next.js app router pages
+    page.tsx          # Homepage (launch list, filters)
+    launches/[id]/    # Mission details
+  components/         # UI components
+  context/            # Favorites context
+  __tests__/          # Unit & integration tests
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ToDOs
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Limitations
