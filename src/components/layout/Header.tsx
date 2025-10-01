@@ -26,12 +26,14 @@ export default function Header() {
           </Link>
         </div>
 
+        {/* Light and Dark Mode Button, functionality remaining}
+        
         {/* Right side */}
-        <div className="flex w-1/2 items-center justify-end gap-6">
+        {/* <div className="flex w-1/2 items-center justify-end gap-6">
           <Button variant="secondary" onClick={toggleTheme}>
             {theme === "light" ? staticText.toggleDark : staticText.toggleLight}
           </Button>
-        </div>
+        </div> */}
       </div>
     </header>
   );

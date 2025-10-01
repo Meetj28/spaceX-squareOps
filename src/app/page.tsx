@@ -28,7 +28,7 @@ type ApiLaunch = {
   details?: string | null;
 };
 
-// 📌 Centralized static text
+// Centralized static text
 const staticText = {
   filters: {
     searchPlaceholder: "Search launches...",
@@ -55,7 +55,7 @@ const staticText = {
 export default function HomePage() {
   const [launches, setLaunches] = useState<ApiLaunch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // ✅ error state
+  const [error, setError] = useState<string | null>(null); // error state
   const [selectedLaunchId, setSelectedLaunchId] = useState<string | null>(null);
 
   // Filters
@@ -84,7 +84,7 @@ export default function HomePage() {
       const data: ApiLaunch[] = await res.json();
       setLaunches(data);
     } catch (err) {
-      setError(staticText.errorState.message); // ✅ set error message
+      setError(staticText.errorState.message); // set error message
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function HomePage() {
     });
   }, [launches, search, year, onlySuccess, showOnlyFavorites, favorites]);
 
-  // 📌 pagination logic
+  //  pagination logic
   const totalPages = Math.ceil(filteredLaunches.length / pageSize);
   const paginatedLaunches = filteredLaunches.slice(
     (page - 1) * pageSize,
