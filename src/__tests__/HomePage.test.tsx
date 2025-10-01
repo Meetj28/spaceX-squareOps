@@ -35,11 +35,22 @@ const mockLaunches = [
 ];
 
 beforeEach(() => {
-  (global as any).fetch = jest.fn(() =>
-    Promise.resolve({
-      ok: true,
-      json: async () => mockLaunches, // component expects array
-    })
+  (global as unknown as { fetch: jest.Mock }).fetch = jest.fn(
+    (_url: string, options?: RequestInit) => {
+      const body = options?.body ? JSON.parse(options.body.toString()) : {};
+      const nameRegex: string | undefined = body.query?.name?.$regex;
+
+      const docs = mockLaunches.filter((l) =>
+        nameRegex
+          ? l.name.toLowerCase().includes(nameRegex.toLowerCase())
+          : true
+      );
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => docs,
+      });
+    }
   );
 });
 
