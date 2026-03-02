@@ -1,0 +1,43 @@
+name: Update Google Sheet on Release
+
+# Ye action tab chalega jab 'main' branch me code merge/push hoga
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Ye tumhe GitHub UI me ek 'Run' button dega (manual testing ke liye)
+
+jobs:
+  update-sheet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests gspread google-auth
+
+      - name: Create Google Credentials File
+        # Ye step tumhare save kiye hue secret se wapas temporary json file banayega
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' > creds.json
+
+      - name: Run Release Tracker Script
+        env:
+          # GitHub automatically ek secure token script ko pass kar dega
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Ensure karo ki python script ka naam yahi hai jo tumne save kiya hai
+          python release_tracker.py --creds creds.json
+
+      - name: Clean up Credentials
+        # Script pass ho ya fail, ye json file ko delete kar dega server se
+        if: always()
+        run: rm creds.json
